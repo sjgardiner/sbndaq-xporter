@@ -11,6 +11,7 @@ import sys
 import os
 import time
 import shutil
+import glob
 
 #import psycopg2 # Get database functions
 
@@ -112,8 +113,48 @@ def obtain_lock(lockname,timeout=5,retries=2):
         sys.exit(1)
 
     return lock
-    
 
+def get_finished_files(dirname,file_pattern="*.root"):
+    return glob.glob(dirname+"/"+file_pattern)
+
+#move files, and return the number moved
+def move_files(files,destdir,moveFile):
+    
+    moved_files=0
+    for f in files:
+        fname = f.split("/")[-1]
+        print "Will move/copy %s to %s" % (f,destdir+fname)
+
+        if(len(glob.glob(dropboxdir+fname))>0):
+            print "File %s already in %s" % (fname,destdir)
+            continue
+
+        if(not moveFile):
+            shutil.copy(f,destdir+fname)
+        else:
+            shutil.move(f,destdir+fname)
+        moved_files+=1
+
+    return moved_files
+
+def write_metadata_files(files):
+
+    n_json_written = 0
+    for f in files:
+        metadata_fname = f+".json"
+        if(len(glob.glob(metadata_fname))>0):
+            print "JSON file for %s already exists." % f
+            continue
+
+        metadata_json = X_SAM_metadata.SAM_metadata(f)
+        print metadata_json
+
+        print metadata_fname
+        with open(metadata_fname,"w") as outfile:
+            outfile.write(metadata_json)
+
+        n_json_written+=1
+    return n_json_written
 
 #
 # Get directory of Xporter.py
@@ -137,6 +178,25 @@ if(connect_to_runconfigdb(runconfigdb)!=0):
 lock = obtain_lock(datadir+"XporterInProgress")
 
 
+#get list of finished files
+files = get_finished_files(datadir,"data_dl*_run*.root")
+
+print "Found %d files in data dir" % len(files)
+for f in files:
+    print "\t%s" % f.split("/")[-1]
+    
+#for each file, move/copy it to the dropbox
+moveFile = False
+n_moved_files = move_files(files,dropboxdir,moveFile=False)
+print "Moved %d / %d files" % (n_moved_files,len(files))
+
+dropbox_files = get_finished_files(dropboxdir,"data_dl*_run*.root")
+print "Found %d files in dropbox" % len(dropbox_files)
+for f in files:
+    print "\t%s" % f.split("/")[-1]
+
+n_json_files_written = write_metadata_files(dropbox_files)
+print "Wrote %d / %d metadata files" % (n_json_files_written,len(dropbox_files))
 
 #exit
 lock.release()

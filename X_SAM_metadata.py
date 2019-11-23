@@ -4,17 +4,55 @@ import os
 import sys
 import time
 import safe
-from runperiod import runperiod
+#from runperiod import runperiod
 import SAMUtilities
+import json
+
 #
 # Begin SAM metadata function
 #
-def SAM_metadata(dropboxdir,filename):
+def SAM_metadata(filename):
     "Subroutine to write out SAM information"
-    filesize = os.stat(filename).st_size
-    #
-    # Get run number from file name
-    #
+    
+    metadata = {}
+
+    #get filesize
+    metadata["file_size"] = os.stat(filename).st_size
+    
+    #get file name
+    fname = filename.split("/")[-1]
+    metadata["file_name"] = fname
+
+    #file type
+    metadata["file_tape"] = "data"
+
+    #file format is artroot
+    metadata["file_format"] = "artroot"
+    
+    #file tier is rawdata
+    metadata["data_tier"] = "raw"
+
+    #get run number from file name
+    run_num = 0
+    for part in fname.split("_"):
+        print part
+        if (part.find("run")==0): 
+            run_num = int(part[3:])
+            break
+    print "RunNum = %d" % run_num
+
+    metadata["runs"] = [ run_num , "physics"]
+    
+    #checksum
+    checksum = SAMUtilities.adler32_crc(filename)
+    checksumstr = "enstore:%s" % checksum
+    
+    metadata["checksum"] = [ checksumstr ]
+
+    return json.dumps(metadata)
+ 
+    run_num = filename.split("_")
+
     period = filename.rfind(".")
     if (period < 0):
         print "No suffix"
