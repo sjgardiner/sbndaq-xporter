@@ -1,5 +1,7 @@
 import sys
-import psycopg2 # Get database functions 
+
+#import psycopg2 # Get database functions 
+
 import dbvariables # get variable names
 import safe
 #

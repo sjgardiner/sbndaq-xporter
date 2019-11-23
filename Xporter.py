@@ -11,68 +11,137 @@ import sys
 import os
 import time
 import shutil
-import psycopg2 # Get database functions
+
+#import psycopg2 # Get database functions
+
 import dbvariables # get conn and cur
 import X_SAM_metadata
 import X_xml_db_fill
 import filelock
 import safe
 import subprocess
+
+#print Xporter script usage and exit
+def print_usage():
+    print 'Command: python Xporter.py <data directory> <dropbox directory> <"dev"/"prod"/"none">'
+    sys.exit(1)
+
+#parse directory names, check if there
+#if so, reutrn updated/parsed name
+#if not, return empty string
+def parse_dir(dirname):
+    try:
+        os.chdir(dirname)
+        if (dirname[len(dirname)-1] != "/"): dirname=dirname+"/"
+        return dirname
+    except:
+        print "Directory: ", dirname, "not found"
+        return ""
+    
+#parse commandline inputs
+def parse_cmdline_inputs(args):
+    if (not(len(args)==3 or len(args)==4)):
+        print_usage()
+
+    datadir = parse_dir(sys.argv[1])
+    if(datadir==""): sys.exit(1)
+
+    dropboxdir = parse_dir(sys.argv[2])
+    if(dropboxdir==""): sys.exit(1)
+
+    runconfigdb = ""
+    if ((len(sys.argv) == 4 and sys.argv[3]=="none") or len(sys.argv)==3):
+        runconfigdb = "none"
+    elif(sys.argv[3]=="dev"):
+        runconfigdb="dev"
+    elif(sys.argv[3]=="prod"):
+        runconfigdb="prod"
+    else:
+        print_usage()
+
+    return datadir,dropboxdir,runconfigdb
+
+
+#connect to runconfig database
+#return 0 if ok
+def connect_to_runconfigdb(dbname):
+
+    if(dbname=="none"):
+        print "Not connectiong to a RunConfigDB"
+        return 0
+
+    elif(dbname=="dev"):
+        print "Connecting to development RunConfigDB..."
+        #dbvariables.conn = psycopg2.connect(database="lariat_dev", user="randy", host="ifdbdev", port="5441")
+        #dbvariables.cur=dbvariables.conn.cursor()
+        return 0
+
+    elif(dbname=="prod"):
+        print "Connecting to production RunConfigDB..."
+
+        #ntry = 0
+        #nodbconnection = True
+        #while nodbconnection:
+            #try:
+                #dbvariables.conn = psycopg2.connect(database="lariat_prd", user="lariatdataxport", password="lariatdataxport_321", host="ifdbprod2", port="5443")
+                #dbvariables.cur=dbvariables.conn.cursor()
+                #nodbconnection = False
+            #except:
+                #ntry +=1
+                #if (ntry % 5 == 1): print "Failed to make lariat_prd connection for",ntry,"times... sleep for 5 minutes"
+                #time.sleep(300)
+        return 0
+
+    else:
+        print "Unknown RunConfigDB name: %s" % dbname
+        return -1;
+
+def obtain_lock(lockname,timeout=5,retries=2):
+    lock = filelock.FileLock(lockname+"FileLock")
+    ntry=0
+    while ntry<=retries:
+        try: 
+            lock.acquire(timeout=timeout)
+            break
+        except filelock.Timeout as err:
+            print "Could not obtain file lock. Exiting."
+        ntry+=1
+
+    if ntry>retries:
+        print "Never obtained lock %s after %d tries" % (lockname,ntry)
+        sys.exit(1)
+
+    return lock
+    
+
+
 #
 # Get directory of Xporter.py
 #
 Xporterdir = os.path.dirname(os.path.abspath(__file__))
-#
-# check to see if the data directory and the dropbox directory exist
-#
-if (len(sys.argv) != 3 and not (len(sys.argv) == 4 and (sys.argv[3] == "prod" or sys.argv[3] == "dev"))):
-    print 'Command: python Xporter.py <data directory> <dropbox directory> <"dev"/"prod">'
+
+#parse commandline inputs
+datadir,dropboxdir,runconfigdb = parse_cmdline_inputs(sys.argv)
+
+print "Data dir=%s, Dropbox dir=%s, RunConfigDB=%s" % (datadir,dropboxdir,runconfigdb)
+
+
+#connect to runconfigdb
+if(connect_to_runconfigdb(runconfigdb)!=0): 
+    print "Connecting to RunConfigDB %s failed." % runconfigdb
     sys.exit(1)
-try:
-    dropboxdir=sys.argv[2]
-    os.chdir(dropboxdir)
-    if (dropboxdir[len(dropboxdir)-1] != "/"): dropboxdir=dropboxdir+"/"
-except:
-    print "Dropbox directory: ", dropboxdir, "not found - please restart program"
-    sys.exit(1)
-#
-# connect to database
-# 
-develop = True
-if (len(sys.argv) == 4 and sys.argv[3]=="prod"):
-    develop=False
-if (develop):
-# development version
-    dbvariables.conn = psycopg2.connect(database="lariat_dev", user="randy", host="ifdbdev", port="5441")
-    dbvariables.cur=dbvariables.conn.cursor()
-#production version
-else:
-    ntry = 0
-    nodbconnection = True
-    while nodbconnection:
-        try:
-            dbvariables.conn = psycopg2.connect(database="lariat_prd", user="lariatdataxport", password="lariatdataxport_321", host="ifdbprod2", port="5443")
-            dbvariables.cur=dbvariables.conn.cursor()
-            nodbconnection = False
-        except:
-            ntry +=1
-            if (ntry % 5 == 1): print "Failed to make lariat_prd connection for",ntry,"times... sleep for 5 minutes"
-            time.sleep(300)
-try:
-    os.chdir(sys.argv[1])
-    datadir=sys.argv[1]
-    if (datadir[len(datadir)-1] != '/'): datadir = datadir+'/'
-except:
-    print "Data directory: ", datadir, "not found - please restart program"
-    sys.exit(1)
-#
+
+
+
 #  check for file lock
-#
-lock = filelock.FileLock(datadir+"XporterInProgress")
-try: 
-    lock.acquire(timeout=5)
-except filelock.Timeout as err:
-    exit(0)
+lock = obtain_lock(datadir+"XporterInProgress")
+
+
+
+#exit
+lock.release()
+sys.exit(0)
+
 #
 # Run file.Complete.py to check for new files
 #
