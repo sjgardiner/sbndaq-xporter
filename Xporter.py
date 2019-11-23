@@ -184,7 +184,7 @@ for f in files:
     
 #for each file, move/copy it to the dropbox
 moveFile = False
-n_moved_files = move_files(files,dropboxdir,moveFile=False)
+n_moved_files = move_files(files,dropboxdir,moveFile=moveFile)
 print "Moved %d / %d files" % (n_moved_files,len(files))
 
 dropbox_files = get_finished_files(dropboxdir,"data_dl*_run*.root")
