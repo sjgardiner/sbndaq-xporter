@@ -24,7 +24,7 @@ def SAM_metadata(filename):
     metadata["file_name"] = fname
 
     #file type
-    metadata["file_tape"] = "data"
+    metadata["file_type"] = "data"
 
     #file format is artroot
     metadata["file_format"] = "artroot"
