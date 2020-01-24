@@ -4,14 +4,14 @@ import os
 import sys
 import time
 import safe
-#from runperiod import runperiod
+from runperiod import runperiod
 import SAMUtilities
 import json
 
 #
 # Begin SAM metadata function
 #
-def SAM_metadata(filename):
+def SAM_metadata(filename, projectvers, projectname):
     "Subroutine to write out SAM information"
     
     metadata = {}
@@ -24,7 +24,7 @@ def SAM_metadata(filename):
     metadata["file_name"] = fname
 
     #file type
-    metadata["file_tape"] = "data"
+    metadata["file_type"] = "data"
 
     #file format is artroot
     metadata["file_format"] = "artroot"
@@ -32,6 +32,8 @@ def SAM_metadata(filename):
     #file tier is rawdata
     metadata["data_tier"] = "raw"
 
+    #file stream [beam trigger] is currently set to extbnb
+    metadata["data_stream"] = "extbnb"
     #get run number from file name
     run_num = 0
     for part in fname.split("_"):
@@ -41,13 +43,21 @@ def SAM_metadata(filename):
             break
     print "RunNum = %d" % run_num
 
-    metadata["runs"] = [ run_num , "physics"]
+    metadata["runs"] = [ [ run_num , "physics"] ]
     
     #checksum
     checksum = SAMUtilities.adler32_crc(filename)
     checksumstr = "enstore:%s" % checksum
     
     metadata["checksum"] = [ checksumstr ]
+    
+    #ICARUS specific fields for bookkeping 
+
+    metadata["icarus_project.version"] = "raw_%s" % projectvers
+
+    metadata["icarus_project.name"] = projectname
+
+    metadata["icarus_project.stage"] = runperiod(int(run_num)) 
 
     return json.dumps(metadata)
 
