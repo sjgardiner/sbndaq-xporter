@@ -24,7 +24,7 @@ import subprocess
 
 #print Xporter script usage and exit
 def print_usage():
-    print 'Command: python Xporter.py <data directory> <dropbox directory> <"dev"/"prod"/"none">'
+    print 'Command: python Xporter.py <data directory> <dropbox directory> <"dev"/"prod"/"none"> <project version> <project name>'
     sys.exit(1)
 
 #parse directory names, check if there
@@ -41,7 +41,7 @@ def parse_dir(dirname):
     
 #parse commandline inputs
 def parse_cmdline_inputs(args):
-    if (not(len(args)==3 or len(args)==4)):
+    if (not(len(args)==3 or len(args)==4 or len(args)==5 or len(args)==6)):
         print_usage()
 
     datadir = parse_dir(sys.argv[1])
@@ -60,7 +60,27 @@ def parse_cmdline_inputs(args):
     else:
         print_usage()
 
-    return datadir,dropboxdir,runconfigdb
+    projver = ""
+    if ((len(sys.argv) == 4 )):
+        projver = "artdaq-3.07.01"
+    elif ((len(sys.argv) == 5 )):
+        projver = sys.argv[4]
+    elif ((len(sys.argv) == 6 )):
+        projver = sys.argv[4]
+    else:
+        print_usage()
+
+    projname = ""
+    if ((len(sys.argv) == 4 )):
+        projname = "DAQDL_testdata"
+    elif ((len(sys.argv) == 5 )):
+        projname = "DAQDL_testdata"
+    elif ((len(sys.argv) == 6 )):
+        projver = sys.argv[5]
+    else:
+        print_usage()
+
+    return datadir,dropboxdir,runconfigdb,projver,projname
 
 
 #connect to runconfig database
@@ -137,7 +157,7 @@ def move_files(files,destdir,moveFile):
 
     return moved_files
 
-def write_metadata_files(files):
+def write_metadata_files(files,pv,pn):
 
     n_json_written = 0
     for f in files:
@@ -146,7 +166,7 @@ def write_metadata_files(files):
             print "JSON file for %s already exists." % f
             continue
 
-        metadata_json = X_SAM_metadata.SAM_metadata(f)
+        metadata_json = X_SAM_metadata.SAM_metadata(f,pv,pn)
         print metadata_json
 
         print metadata_fname
@@ -162,9 +182,9 @@ def write_metadata_files(files):
 Xporterdir = os.path.dirname(os.path.abspath(__file__))
 
 #parse commandline inputs
-datadir,dropboxdir,runconfigdb = parse_cmdline_inputs(sys.argv)
+datadir,dropboxdir,runconfigdb,projver,projname = parse_cmdline_inputs(sys.argv)
 
-print "Data dir=%s, Dropbox dir=%s, RunConfigDB=%s" % (datadir,dropboxdir,runconfigdb)
+print "Data dir=%s, Dropbox dir=%s, RunConfigDB=%s, Project version=%s, Project name=%s" % (datadir,dropboxdir,runconfigdb,projver,projname)
 
 
 #connect to runconfigdb
@@ -192,7 +212,7 @@ print "Found %d files in dropbox" % len(dropbox_files)
 for f in files:
     print "\t%s" % f.split("/")[-1]
 
-n_json_files_written = write_metadata_files(dropbox_files)
+n_json_files_written = write_metadata_files(dropbox_files,projver,projname)
 print "Wrote %d / %d metadata files" % (n_json_files_written,len(dropbox_files))
 
 #exit
