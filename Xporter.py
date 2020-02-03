@@ -203,15 +203,20 @@ if(connect_to_runconfigdb(runconfigdb)!=0):
 #  check for file lock
 lock = obtain_lock(datadir+"XporterInProgress")
 
+# CHANGE ME AT PRODUCTION!
+# for now, just do one tenth of files
+# also for now, just copy to output directory...
+file_match_str = "data_dl*_run*_*1.root"
+moveFile = False
+
 #get list of finished files
-files = get_finished_files(datadir,"data_dl*_run*.root")
+files = get_finished_files(datadir,file_match_str)
 
 print "Found %d files in data dir" % len(files)
 for f in files:
     print "\t%s" % f.split("/")[-1]
     
 #for each file, move/copy it to the dropbox
-moveFile = True
 n_moved_files = move_files(files,dropboxdir,moveFile=moveFile)
 print "Moved %d / %d files" % (n_moved_files,len(files))
 
