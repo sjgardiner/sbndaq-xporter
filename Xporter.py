@@ -8,7 +8,7 @@
 #
 # import modules
 import sys
-import os
+import os, stat
 import time
 import shutil
 import glob
@@ -41,7 +41,9 @@ def parse_dir(dirname):
     
 #parse commandline inputs
 def parse_cmdline_inputs(args):
+    print args
     if (not(len(args)==3 or len(args)==4 or len(args)==5 or len(args)==6)):
+        print len(args)
         print_usage()
 
     datadir = parse_dir(sys.argv[1])
@@ -51,7 +53,7 @@ def parse_cmdline_inputs(args):
     if(dropboxdir==""): sys.exit(1)
 
     runconfigdb = ""
-    if ((len(sys.argv) == 4 and sys.argv[3]=="none") or len(sys.argv)==3):
+    if ((len(sys.argv) >= 4 and sys.argv[3]=="none") or len(sys.argv)==3):
         runconfigdb = "none"
     elif(sys.argv[3]=="dev"):
         runconfigdb="dev"
@@ -151,8 +153,12 @@ def move_files(files,destdir,moveFile):
 
         if(not moveFile):
             shutil.copy(f,destdir+fname)
+            os.chmod(destdir+fname,
+                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
         else:
             shutil.move(f,destdir+fname)
+            os.chmod(destdir+fname,
+                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
         moved_files+=1
 
     return moved_files
@@ -172,6 +178,8 @@ def write_metadata_files(files,pv,pn):
         print metadata_fname
         with open(metadata_fname,"w") as outfile:
             outfile.write(metadata_json)
+            os.chmod(metadata_fname,
+                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
 
         n_json_written+=1
     return n_json_written
@@ -203,7 +211,7 @@ for f in files:
     print "\t%s" % f.split("/")[-1]
     
 #for each file, move/copy it to the dropbox
-moveFile = False
+moveFile = True
 n_moved_files = move_files(files,dropboxdir,moveFile=moveFile)
 print "Moved %d / %d files" % (n_moved_files,len(files))
 

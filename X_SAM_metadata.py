@@ -32,8 +32,11 @@ def SAM_metadata(filename, projectvers, projectname):
     #file tier is rawdata
     metadata["data_tier"] = "raw"
 
+    #
+    metadata["sbn_dm.detector"] = "sbn_fd"
+
     #file stream [beam trigger] is currently set to extbnb
-    metadata["data_stream"] = "extbnb"
+    metadata["data_stream"] = "ext"
     #get run number from file name
     run_num = 0
     for part in fname.split("_"):
@@ -48,6 +51,17 @@ def SAM_metadata(filename, projectvers, projectname):
     #checksum
     checksum = SAMUtilities.adler32_crc(filename)
     checksumstr = "enstore:%s" % checksum
+
+    #time
+    gmt = time.gmtime(os.stat(filename).st_mtime)
+    time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
+    
+    metadata["sbn_dm.file_year"] = time_tuple[0]
+    metadata["sbn_dm.file_month"] = time_tuple[1]
+    metadata["sbn_dm.file_day"] = time_tuple[2]
+
+    #print "Creation time:", timestr
+
     
     metadata["checksum"] = [ checksumstr ]
     
