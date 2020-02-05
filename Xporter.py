@@ -63,24 +63,16 @@ def parse_cmdline_inputs(args):
         print_usage()
 
     projver = ""
-    if ((len(sys.argv) == 4 )):
+    if ((len(sys.argv) <= 4 )):
         projver = "artdaq-3.07.01"
-    elif ((len(sys.argv) == 5 )):
-        projver = sys.argv[4]
-    elif ((len(sys.argv) == 6 )):
-        projver = sys.argv[4]
     else:
-        print_usage()
+        projver = sys.argv[4]
 
     projname = ""
-    if ((len(sys.argv) == 4 )):
+    if ((len(sys.argv) <= 5 )):
         projname = "DAQDL_testdata"
-    elif ((len(sys.argv) == 5 )):
-        projname = "DAQDL_testdata"
-    elif ((len(sys.argv) == 6 )):
-        projver = sys.argv[5]
     else:
-        print_usage()
+        projname = sys.argv[5]
 
     return datadir,dropboxdir,runconfigdb,projver,projname
 
@@ -152,7 +144,7 @@ def move_files(files,destdir,moveFile):
             continue
 
         if(not moveFile):
-            shutil.copy(f,destdir+fname)
+            shutil.copy2(f,destdir+fname) #copy2 to try to preserve timestamps
             os.chmod(destdir+fname,
                      stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
         else:
@@ -172,8 +164,12 @@ def write_metadata_files(files,pv,pn):
             print "JSON file for %s already exists." % f
             continue
 
-        metadata_json = X_SAM_metadata.SAM_metadata(f,pv,pn)
-        print metadata_json
+        try:
+            metadata_json = X_SAM_metadata.SAM_metadata(f,pv,pn)
+            print metadata_json
+        except:
+            print("ERROR Creating Metadata for file %s" % f)
+            continue
 
         print metadata_fname
         with open(metadata_fname,"w") as outfile:
@@ -206,7 +202,7 @@ lock = obtain_lock(datadir+"XporterInProgress")
 # CHANGE ME AT PRODUCTION!
 # for now, just do one tenth of files
 # also for now, just copy to output directory...
-file_match_str = "data_dl*_run*_*1.root"
+file_match_str = "data_dl*_run*_*1_*.root"
 moveFile = False
 
 #get list of finished files
