@@ -202,7 +202,7 @@ lock = obtain_lock(datadir+"XporterInProgress")
 # CHANGE ME AT PRODUCTION!
 # for now, just do one tenth of files
 # also for now, just copy to output directory...
-file_match_str = "data_dl*_run*_*1_*.root"
+file_match_str = "data_dl*_run*_*.root"
 moveFile = True
 
 #get list of finished files
