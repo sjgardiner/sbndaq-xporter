@@ -15,4 +15,6 @@ setup ifdhc_config v2_4_5
 export SAM_CP_CONFIG_DIR=$PWD
 export X509_USER_PROXY=/opt/icarusraw/icarusraw.Raw.proxy
 
+source ~icarusraw/FTS/bin/activate
+
 #export X509_CERT_DIR=
