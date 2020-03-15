@@ -17,4 +17,9 @@ export X509_USER_PROXY=/opt/icarusraw/icarusraw.Raw.proxy
 
 source ~icarusraw/FTS/bin/activate
 
+export FTS_RUN_DIR=~icarusraw/FTS/`hostname`
+export FTS_CONFIG_FILE=$PWD/icarus-evb_fts_config.ini
+cp $FTS_CONFIG_FILE $FTS_RUN_DIR/
+
+
 #export X509_CERT_DIR=
