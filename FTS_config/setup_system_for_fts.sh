@@ -21,6 +21,7 @@ yum install yum-conf-extras
 
 #Then we need CA certificates installed, which I think means following this:
 yum install osg-ca-certs
+yum install osg-wn-client
 yum install fetch-crl
 
 #Then, make sure fetch-crl-boot and fetch-crl-cron are enabled.
