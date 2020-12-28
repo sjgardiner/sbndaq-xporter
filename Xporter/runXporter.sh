@@ -1,12 +1,13 @@
 #!/bin/bash
 
 timestamp=`date +%Y_%m_%d`
+now=`date "+%Y-%m-%d %T"`
 logfile="/daq/log/fts_logs/`hostname`/xporter_`hostname`_${timestamp}.log"
 
 file_lock="/tmp/xporter_`hostname`.lock"
 
 if [ -f $file_lock ]; then
-    echo "Xport in progress! Do not run"
+    echo "$now : Xport in progress! Do not run" >> ${logfile} 2>&1
     exit 0
 fi
 
