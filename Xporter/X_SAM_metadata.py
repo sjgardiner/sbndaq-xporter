@@ -74,6 +74,10 @@ def SAM_metadata(filename, projectvers, projectname):
 
     metadata["icarus_project.stage"] = runperiod(int(run_num)) 
 
+    result=offline_run_history.RunHistoryiReader().read(run_num)
+    dictionary={**result[1]}
+
+    metadata["configuration"] = dictionary.get('configuration')
 
     return json.dumps(metadata)
 
