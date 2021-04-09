@@ -77,7 +77,7 @@ def SAM_metadata(filename, projectvers, projectname):
     result=offline_run_history.RunHistoryiReader().read(run_num)
     dictionary={**result[1]}
 
-    metadata["configuration"] = dictionary.get('configuration')
+    metadata["configuration.name"] = dictionary.get('configuration')
 
     return json.dumps(metadata)
 
