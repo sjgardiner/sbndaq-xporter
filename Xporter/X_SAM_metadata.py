@@ -8,6 +8,7 @@ from runperiod import runperiod
 import SAMUtilities
 import json
 
+import offline_run_history
 #
 # Begin SAM metadata function
 #
@@ -17,37 +18,37 @@ def SAM_metadata(filename, projectvers, projectname):
     metadata = {}
 
     #get filesize
-    metadata["file_size"] = os.stat(filename).st_size
+    metadata["file_size"] = os.stat(filename).st_size 
     
     #get file name
     fname = filename.split("/")[-1]
-    metadata["file_name"] = fname
+    metadata["file_name"] = fname 
 
     #file type
-    metadata["file_type"] = "data"
+    metadata["file_type"] = "data" 
 
     #file format is artroot
-    metadata["file_format"] = "artroot"
+    metadata["file_format"] = "artroot" 
     
     #file tier is rawdata
     metadata["data_tier"] = "raw"
 
     #
-    metadata["sbn_dm.detector"] = "sbn_fd"
+    metadata["sbn_dm.detector"] = "sbn_fd"  
 
     #file stream [beam trigger] is currently set to extbnb
-    metadata["data_stream"] = "ext"
+    metadata["data_stream"] = "ext"  
     #get run number from file name
     run_num = 0
     for part in fname.split("_"):
-        print part
+        print(part)
         if (part.find("run")==0): 
             run_num = int(part[3:])
             break
-    print "RunNum = %d" % run_num
+    print("RunNum = %d" % run_num)
 
-    metadata["runs"] = [ [ run_num , "physics"] ]
-    
+    metadata["runs"] = [ [ run_num , "physics"] ] 
+
     #checksum
     checksum = SAMUtilities.adler32_crc(filename)
     checksumstr = "enstore:%s" % checksum
@@ -56,22 +57,27 @@ def SAM_metadata(filename, projectvers, projectname):
     gmt = time.gmtime(os.stat(filename).st_mtime)
     time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
     
-    metadata["sbn_dm.file_year"] = time_tuple[0]
-    metadata["sbn_dm.file_month"] = time_tuple[1]
-    metadata["sbn_dm.file_day"] = time_tuple[2]
+    metadata["sbn_dm.file_year"] = time_tuple[0] 
+    metadata["sbn_dm.file_month"] = time_tuple[1] 
+    metadata["sbn_dm.file_day"] = time_tuple[2] 
 
     #print "Creation time:", timestr
 
     
-    metadata["checksum"] = [ checksumstr ]
+    metadata["checksum"] = [ checksumstr ]  
     
     #ICARUS specific fields for bookkeping 
 
-    metadata["icarus_project.version"] = "raw_%s" % projectvers
+    metadata["icarus_project.version"] = "raw_%s" % projectvers  
 
-    metadata["icarus_project.name"] = projectname
+    metadata["icarus_project.name"] = projectname 
 
     metadata["icarus_project.stage"] = runperiod(int(run_num)) 
+
+    result=offline_run_history.RunHistoryiReader().read(run_num)
+    dictionary={**result[1]}
+
+    metadata["configuration.name"] = dictionary.get('configuration')
 
     return json.dumps(metadata)
 
