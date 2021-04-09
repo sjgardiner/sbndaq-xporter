@@ -204,7 +204,7 @@ lock = obtain_lock(datadir+"XporterInProgress")
 # for now, just do one tenth of files
 # also for now, just copy to output directory...
 file_match_str = "data_dl*_run*_*.root"
-moveFile = False
+moveFile = True
 
 #get list of finished files
 files = get_finished_files(datadir,file_match_str)
