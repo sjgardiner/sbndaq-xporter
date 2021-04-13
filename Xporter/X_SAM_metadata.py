@@ -79,6 +79,8 @@ def SAM_metadata(filename, projectvers, projectname):
 
     metadata["configuration.name"] = dictionary.get('configuration')
 
+    metadata["icarus.components"] = dictionary.get('components')
+
     return json.dumps(metadata)
 
 
