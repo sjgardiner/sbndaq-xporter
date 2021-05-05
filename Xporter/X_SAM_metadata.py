@@ -7,6 +7,7 @@ import safe
 from runperiod import runperiod
 import SAMUtilities
 import json
+import re
 
 import offline_run_history
 #
@@ -78,6 +79,32 @@ def SAM_metadata(filename, projectvers, projectname):
     dictionary={**result[1]}
 
     metadata["configuration.name"] = dictionary.get('configuration')
+
+    s = dictionary.get('configuration').lower()
+       
+    # beam options
+    beambnb = "bnb"
+    beamnumi = "numi"
+    laser = "laser"
+    zerobias = "zerobias"
+
+    #if (beambnb and beamnumi) in s:
+       #beam = "mixed"
+    if (beambnb in s and s.find(beamnumi) == -1):
+       beam = "BNB"
+    elif (beamnumi in s and s.find(beambnb) == -1):
+       beam = "NUMI"
+    elif ( zerobias or laser) in s:
+       beam = "none"
+    else:
+       beam = "unknown"
+
+    metadata["beam_type"] = beam
+
+    # components list
+    #s = dictionary.get('components').replace('[','').replace(']','')
+    #metadata["icarus.components"] = s.split(', ')
+
 
     return json.dumps(metadata)
 
