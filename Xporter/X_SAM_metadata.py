@@ -99,7 +99,7 @@ def SAM_metadata(filename, projectvers, projectname):
     else:
        beam = "unknown"
 
-    metadata["beam_type"] = beam
+    metadata["sbn_dm.beam_type"] = beam
 
     # components list
     #s = dictionary.get('components').replace('[','').replace(']','')
