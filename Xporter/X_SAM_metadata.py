@@ -81,7 +81,7 @@ def SAM_metadata(filename, projectvers, projectname):
     metadata["configuration.name"] = dictionary.get('configuration')
 
     s = dictionary.get('configuration').lower()
-    #s = "MinBias_BNB_NUMI_SPAW".lower()    
+       
     # beam options
     beambnb = "bnb"
     beamnumi = "numi"
