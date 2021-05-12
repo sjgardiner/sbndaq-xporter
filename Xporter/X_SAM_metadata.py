@@ -87,18 +87,16 @@ def SAM_metadata(filename, projectvers, projectname):
     beamnumi = "numi"
     laser = "laser"
     zerobias = "zerobias"
-#    bnbnumi = "common"
+    bnbnumi = "common"
 
-    #if (beambnb and beamnumi) in s:
-       #beam = "mixed"
     if (beambnb in s and s.find(beamnumi) == -1):
        beam = "BNB"
     elif (beamnumi in s and s.find(beambnb) == -1):
        beam = "NUMI"
     elif ( zerobias or laser) in s:
        beam = "none"
- #   elif (bnbnumi) in s:
- #      beam = "mixed"
+    elif (bnbnumi) in s:
+       beam = "mixed"
     else:
        beam = "unknown"
 
