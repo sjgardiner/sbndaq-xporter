@@ -5,6 +5,7 @@ run_number = 5458
 parameter_spec={"metadata.fcl": {
           "components":"components",
           "configuration":"config_name",
+          'projectversion':'sbndaq_commit_or_version'
           #'start_time':'daqinterface_start_time',
           #'stop_time':'daqinterface_stop_time'
     }}
