@@ -13,7 +13,7 @@ import offline_run_history
 #
 # Begin SAM metadata function
 #
-def SAM_metadata(filename, projectvers, projectname):
+def SAM_metadata(filename): #, projectvers, projectname):
     "Subroutine to write out SAM information"
     
     metadata = {}
@@ -69,14 +69,16 @@ def SAM_metadata(filename, projectvers, projectname):
     
     #ICARUS specific fields for bookkeping 
 
-    metadata["icarus_project.version"] = "raw_%s" % projectvers  
-
-    metadata["icarus_project.name"] = projectname 
-
-    metadata["icarus_project.stage"] = runperiod(int(run_num)) 
-
     result=offline_run_history.RunHistoryiReader().read(run_num)
     dictionary={**result[1]}
+
+    version = dictionary.get('projectversion')
+
+    metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
+
+    metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
+
+    metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
     metadata["configuration.name"] = dictionary.get('configuration')
 
