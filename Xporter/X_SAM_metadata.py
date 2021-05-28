@@ -13,7 +13,7 @@ import offline_run_history
 #
 # Begin SAM metadata function
 #
-def SAM_metadata(filename): #, projectvers, projectname):
+def SAM_metadata(filename, projectvers, projectname):
     "Subroutine to write out SAM information"
     
     metadata = {}
