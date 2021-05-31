@@ -37,8 +37,15 @@ def SAM_metadata(filename, projectvers, projectname):
     #
     metadata["sbn_dm.detector"] = "sbn_fd"  
 
-    #file stream [beam trigger] is currently set to extbnb
-    metadata["data_stream"] = "ext"  
+    #file stream [beam trigger]
+    stream = "unknown"
+    for part in fname.split("_"):
+        if(part.find("fstrm")==0):
+            stream = part[5:].lower()
+            break
+    print("data_stream = '%s'"%stream)
+    metadata["data_stream"] = stream  
+
     #get run number from file name
     run_num = 0
     for part in fname.split("_"):
@@ -91,9 +98,9 @@ def SAM_metadata(filename, projectvers, projectname):
     zerobias = "zerobias"
     bnbnumi = "common"
 
-    if (beambnb in s and s.find(beamnumi) == -1):
+    if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb'):
        beam = "BNB"
-    elif (beamnumi in s and s.find(beambnb) == -1):
+    elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi'):
        beam = "NUMI"
     elif ( zerobias or laser) in s:
        beam = "none"
