@@ -22,7 +22,6 @@ import filelock
 import safe
 import subprocess
 
-
 #print Xporter script usage and exit
 def print_usage():
     print('Command: python Xporter.py <data directory> <dropbox directory> <"dev"/"prod"/"none"> <project version> <project name>')

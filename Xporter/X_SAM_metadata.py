@@ -10,6 +10,8 @@ import json
 import re
 
 import offline_run_history
+import ROOT
+from ROOT import TFile,TTree
 #
 # Begin SAM metadata function
 #
@@ -110,6 +112,14 @@ def SAM_metadata(filename, projectvers, projectname):
        beam = "unknown"
 
     metadata["sbn_dm.beam_type"] = beam
+
+    #for event count:
+    fFile = TFile(filename,"READ")
+    fTree= fFile.Get("Events")
+    nEvents = fTree.GetEntries()
+    print("number of event in the root file %d" % nEvents)
+
+    metadata["sbn_dm.event_count"] = nEvents
 
     # components list
     #s = dictionary.get('components').replace('[','').replace(']','')
