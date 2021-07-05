@@ -112,7 +112,7 @@ def SAM_metadata(filename, projectvers, projectname):
     nEvents = fTree.GetEntries()
     print("number of event in the root file %d" % nEvents)
 
-    metadata["sbn_dm.event_counter"] = nEvents
+    metadata["sbn_dm.event_count"] = nEvents
 
     # components list
     #s = dictionary.get('components').replace('[','').replace(']','')
