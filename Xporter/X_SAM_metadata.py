@@ -63,6 +63,9 @@ def SAM_metadata(filename, projectvers, projectname):
     checksum = SAMUtilities.adler32_crc(filename)
     checksumstr = "enstore:%s" % checksum
 
+    print("Checksum = %s" % checksumstr)
+
+
     #time
     gmt = time.gmtime(os.stat(filename).st_mtime)
     time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
@@ -78,20 +81,26 @@ def SAM_metadata(filename, projectvers, projectname):
     
     #ICARUS specific fields for bookkeping 
 
-    result=offline_run_history.RunHistoryiReader().read(run_num)
-    dictionary={**result[1]}
 
-    version = dictionary.get('projectversion')
+    try:
+        result=offline_run_history.RunHistoryiReader().read(run_num)
+        dictionary={**result[1]}
 
-    metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
+        version = dictionary.get('projectversion')
 
-    metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
+        metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
+
+        metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
+
+        metadata["configuration.name"] = dictionary.get('configuration')
+
+        s = dictionary.get('configuration').lower()
+    except:
+        print("Failed to connect to RunHistoryReader")
+
 
     metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
-    metadata["configuration.name"] = dictionary.get('configuration')
-
-    s = dictionary.get('configuration').lower()
        
     # beam options
     beambnb = "bnb"
