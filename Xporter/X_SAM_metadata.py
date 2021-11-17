@@ -115,6 +115,8 @@ def SAM_metadata(filename, projectvers, projectname):
        beam = "NUMI"
     elif ( zerobias or laser) in s:
        beam = "none"
+    elif ('offbeam' in stream):
+       beam = "none"
     elif (bnbnumi) in s:
        beam = "mixed"
     else:

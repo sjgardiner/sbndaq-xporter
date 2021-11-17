@@ -146,11 +146,13 @@ def move_files(files,destdir,moveFile):
         if(not moveFile):
             shutil.copy2(f,destdir+fname) #copy2 to try to preserve timestamps
             os.chmod(destdir+fname,
-                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
+                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
+#                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
         else:
             shutil.move(f,destdir+fname)
             os.chmod(destdir+fname,
-                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
+                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
+#                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
         moved_files+=1
 
     return moved_files
@@ -175,7 +177,8 @@ def write_metadata_files(files,pv,pn):
         with open(metadata_fname,"w") as outfile:
             outfile.write(metadata_json)
             os.chmod(metadata_fname,
-                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
+                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
+#                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
 
         n_json_written+=1
     return n_json_written
