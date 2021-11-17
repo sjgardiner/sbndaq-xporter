@@ -7,4 +7,3 @@ do
     echo "Executing: ssh ${server} crontab ~icarus/FileTransfer/sbndaq-xporter/Xporter/${crontab_file}"
     ssh $server "crontab ~icarus/FileTransfer/sbndaq-xporter/Xporter/${crontab_file}"
 done
-
