@@ -7,7 +7,11 @@ import safe
 from runperiod import runperiod
 import SAMUtilities
 import json
+import re
 
+import offline_run_history
+import ROOT
+from ROOT import TFile,TTree
 #
 # Begin SAM metadata function
 #
@@ -17,61 +21,121 @@ def SAM_metadata(filename, projectvers, projectname):
     metadata = {}
 
     #get filesize
-    metadata["file_size"] = os.stat(filename).st_size
+    metadata["file_size"] = os.stat(filename).st_size 
     
     #get file name
     fname = filename.split("/")[-1]
-    metadata["file_name"] = fname
+    metadata["file_name"] = fname 
 
     #file type
-    metadata["file_type"] = "data"
+    metadata["file_type"] = "data" 
 
     #file format is artroot
-    metadata["file_format"] = "artroot"
+    metadata["file_format"] = "artroot" 
     
     #file tier is rawdata
     metadata["data_tier"] = "raw"
 
     #
-    metadata["sbn_dm.detector"] = "sbn_fd"
+    metadata["sbn_dm.detector"] = "sbn_fd"  
 
-    #file stream [beam trigger] is currently set to extbnb
-    metadata["data_stream"] = "ext"
+    #file stream [beam trigger]
+    stream = "unknown"
+    for part in fname.split("_"):
+        if(part.find("fstrm")==0):
+            stream = part[5:].lower()
+            break
+    print("data_stream = '%s'"%stream)
+    metadata["data_stream"] = stream  
+
     #get run number from file name
     run_num = 0
     for part in fname.split("_"):
-        print part
+        print(part)
         if (part.find("run")==0): 
             run_num = int(part[3:])
             break
-    print "RunNum = %d" % run_num
+    print("RunNum = %d" % run_num)
 
-    metadata["runs"] = [ [ run_num , "physics"] ]
-    
+    metadata["runs"] = [ [ run_num , "physics"] ] 
+
     #checksum
     checksum = SAMUtilities.adler32_crc(filename)
     checksumstr = "enstore:%s" % checksum
+
+    print("Checksum = %s" % checksumstr)
+
 
     #time
     gmt = time.gmtime(os.stat(filename).st_mtime)
     time_tuple =time.struct_time(gmt) #strftime("%d-%b-%Y %H:%M:%S",gmt)
     
-    metadata["sbn_dm.file_year"] = time_tuple[0]
-    metadata["sbn_dm.file_month"] = time_tuple[1]
-    metadata["sbn_dm.file_day"] = time_tuple[2]
+    metadata["sbn_dm.file_year"] = time_tuple[0] 
+    metadata["sbn_dm.file_month"] = time_tuple[1] 
+    metadata["sbn_dm.file_day"] = time_tuple[2] 
 
     #print "Creation time:", timestr
 
     
-    metadata["checksum"] = [ checksumstr ]
+    metadata["checksum"] = [ checksumstr ]  
     
     #ICARUS specific fields for bookkeping 
 
-    metadata["icarus_project.version"] = "raw_%s" % projectvers
 
-    metadata["icarus_project.name"] = projectname
+    try:
+        result=offline_run_history.RunHistoryiReader().read(run_num)
+        dictionary={**result[1]}
 
-    metadata["icarus_project.stage"] = runperiod(int(run_num)) 
+        version = dictionary.get('projectversion')
+
+        metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
+
+        metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
+
+        metadata["configuration.name"] = dictionary.get('configuration')
+
+        s = dictionary.get('configuration').lower()
+    except:
+        print("Failed to connect to RunHistoryReader")
+
+
+    metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
+
+       
+    # beam options
+    beambnb = "bnb"
+    beamnumi = "numi"
+    laser = "laser"
+    zerobias = "zerobias"
+    bnbnumi = "common"
+
+    if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb'):
+       beam = "BNB"
+    elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi'):
+       beam = "NUMI"
+    elif ( zerobias or laser) in s:
+       beam = "none"
+    elif ('offbeam' in stream):
+       beam = "none"
+    elif (bnbnumi) in s:
+       beam = "mixed"
+    else:
+       beam = "unknown"
+
+    metadata["sbn_dm.beam_type"] = beam
+
+    #for event count:
+    fFile = TFile(filename,"READ")
+    fTree= fFile.Get("Events")
+    nEvents = fTree.GetEntries()
+    print("number of event in the root file %d" % nEvents)
+
+    metadata["sbn_dm.event_count"] = nEvents
+
+    # components list
+    #s = dictionary.get('components').replace('[','').replace(']','')
+    #metadata["icarus.components"] = s.split(', ')
+
 
     return json.dumps(metadata)
 
