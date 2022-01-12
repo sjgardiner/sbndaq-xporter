@@ -10,7 +10,7 @@ parameter_spec={"metadata.fcl": {
           #'stop_time':'daqinterface_stop_time'
     }}
 
-ucondb_uri = 'https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d'
+ucondb_uri = 'https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records_pending/configuration/key=%d'
 
 class RunHistoryiReader:
     def __init__(self,
