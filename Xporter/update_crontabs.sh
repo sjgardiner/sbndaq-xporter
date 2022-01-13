@@ -2,7 +2,7 @@
 
 crontab_file=$1
 
-for server in icarus-evb01 icarus-evb02 icarus-evb03 icarus-evb04 icarus-evb05 icarus-evb06
+for server in icarus-evb01 icarus-evb02 icarus-evb03 icarus-evb04 icarus-evb05
 do
     cat $1 logfile_crontab.ctab > tmp.ctab
     echo "crontab to add:"
