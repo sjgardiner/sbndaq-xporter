@@ -6,11 +6,14 @@
 #    where the sam_cp.cfg file resides.
 #
 
+source /daq/software/products/setup
 source /home/nfs/icarusraw/ups/setups
-setup ifdhc v2_5_4
 setup sam_cp v9_0_8
 setup encp -q stken:x86_64
-setup ifdhc_config v2_4_5
+setup ifdhc v2_6_1 -q e20:p392:prof
+setup ifdhc_config v2_6_1a
+
+ups active
 
 export SAM_CP_CONFIG_DIR=$PWD
 export X509_USER_PROXY=/opt/icarusraw/icarusraw.Raw.proxy
