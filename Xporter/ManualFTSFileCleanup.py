@@ -4,31 +4,56 @@ import glob
 import os
 
 root_file_list = glob.glob("/data/fts_dropbox/*.root")
+json_file_list = glob.glob("/data/fts_dropbox/*.json")
 
-addr_lead_str="https://fndca3b.fnal.gov:3880/api/v1/namespace/pnfs/fnal.gov/usr/icarus/archive/sbn/sbn_fd/data/raw/ext/raw_sbndaq_v0_04_03/DataXportTesting_03Feb2020/Run0/00/00"
+#FTS output string formatted as below
+#${sbn_dm.detector}/${file_type}/${data_tier}/${data_stream}/${icarus_project.version}/${icarus_project.name}/${icarus_project.stage}/${run_number[8/2]}
 
-for f in root_file_list:
-    r1 = f.split("_")[3][3:][:2]
-    r2 = f.split("_")[3][3:][2:]
-    addr = "%s/%s/%s/%s?locality=true"%(addr_lead_str,r1,r2,f.split("/")[-1])
+
+addr_lead_str="https://fndca3b.fnal.gov:3880/api/v1/namespace/pnfs/fnal.gov/usr/icarus/archive/sbn"
+
+for fname in json_file_list:
+    #print(fname)
+    metadata = {}
+    with open(fname) as f:
+        metadata = json.load(f)
+    run_number = int(metadata["runs"][0][0])
+    append_str = "%s/%s/%s/%s/%s/%s/%s/%02d/%02d/%02d/%02d"%(metadata["sbn_dm.detector"],
+                                                                 metadata["file_type"],
+                                                                 metadata["data_tier"],
+                                                                 metadata["data_stream"],
+                                                                 metadata["icarus_project.version"],
+                                                                 metadata["icarus_project.name"],
+                                                                 metadata["icarus_project.stage"],
+                                                                 run_number/100/100/100,
+                                                                 run_number/100/100,
+                                                                 run_number/100,
+                                                                 run_number%100)
+                                                             
+    #print(append_str)
+    root_fname=fname[:-5]
+    #print(root_fname)
+
+    addr = "%s/%s/%s?locality=true"%(addr_lead_str,append_str,root_fname.split("/")[-1])
+    #print(addr)
+
     p = subprocess.Popen(['curl','-k','-X','GET','%s'%addr],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     curl_out = json.loads(stdout)
-
+        
     if not "fileLocality" in curl_out:
-        print("FILE %s not declared?"%f)
+        print("FILE %s not declared?"%root_fname)
         continue
 
     if "NONE" in curl_out["fileLocality"]:
-        print("FILE %s no locality?"%f)
+        print("FILE %s no locality?"%root_fname)
         continue
 
     if "NEARLINE" in curl_out["fileLocality"] :
-        print("FILE %s ON TAPE!"%f)
-        json_file = f.split(".")[0]+".json"
-        print("Delete files %s and %s"%(f,json_file))
-        os.system("rm -f %s"%f)
-        os.system("rm -f %s"%json_file)
+        print("FILE %s ON TAPE!"%root_fname)
+        print("Delete files %s and %s"%(fname,root_fname))
+        os.system("rm -f %s"%root_fname)
+        os.system("rm -f %s"%fname)
 
 
 print("Done")
