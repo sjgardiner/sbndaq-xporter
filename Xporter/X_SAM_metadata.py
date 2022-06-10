@@ -109,9 +109,9 @@ def SAM_metadata(filename, projectvers, projectname):
     zerobias = "zerobias"
     bnbnumi = "common"
 
-    if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb'):
+    if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
        beam = "BNB"
-    elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi'):
+    elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
        beam = "NUMI"
     elif ( zerobias or laser) in s:
        beam = "none"
