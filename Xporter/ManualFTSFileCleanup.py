@@ -16,7 +16,12 @@ for fname in json_file_list:
     #print(fname)
     metadata = {}
     with open(fname) as f:
-        metadata = json.load(f)
+        try:
+            metadata = json.load(f)
+        except:
+            print('Failed to load file %s'%fname)
+    if len(metadata)==0:
+        continue
     run_number = int(metadata["runs"][0][0])
     append_str = "%s/%s/%s/%s/%s/%s/%s/%02d/%02d/%02d/%02d"%(metadata["sbn_dm.detector"],
                                                                  metadata["file_type"],
@@ -39,8 +44,13 @@ for fname in json_file_list:
 
     p = subprocess.Popen(['curl','-k','-X','GET','%s'%addr],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    curl_out = json.loads(stdout)
-        
+    curl_out = {}
+    try:
+        curl_out = json.loads(stdout)
+    except:
+        print("Failed to load JSON.")
+        print(stderr)
+
     if not "fileLocality" in curl_out:
         print("FILE %s not declared?"%root_fname)
         continue
