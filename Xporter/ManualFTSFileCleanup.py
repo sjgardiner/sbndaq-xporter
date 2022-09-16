@@ -13,7 +13,7 @@ json_file_list = glob.glob("/data/fts_dropbox/*.json")
 addr_lead_str="https://fndca3b.fnal.gov:3880/api/v1/namespace/pnfs/fnal.gov/usr/icarus/archive/sbn"
 
 for fname in json_file_list:
-    #print(fname)
+    print(fname)
     metadata = {}
     with open(fname) as f:
         try:
@@ -54,6 +54,8 @@ for fname in json_file_list:
     if not "fileLocality" in curl_out:
         print("FILE %s not declared?"%root_fname)
         continue
+
+    print(curl_out["fileLocality"])
 
     if "NONE" in curl_out["fileLocality"]:
         print("FILE %s no locality?"%root_fname)
