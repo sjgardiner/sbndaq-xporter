@@ -86,6 +86,11 @@ def SAM_metadata(filename, projectvers, projectname):
         result=offline_run_history.RunHistoryiReader().read(run_num)
         dictionary={**result[1]}
 
+        if len(dictionary)==0:
+            print("...pending run records failed. trying run records")
+            result = offline_run_history.RunHistoryiReader(ucondb_uri='https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d').read(run_num)
+            dictionary={**result[1]}
+
         version = dictionary.get('projectversion')
 
         metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
