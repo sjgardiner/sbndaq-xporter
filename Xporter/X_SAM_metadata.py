@@ -16,7 +16,7 @@ from ROOT import TFile,TTree
 #
 # Begin SAM metadata function
 #
-def SAM_metadata(filename, projectvers, projectname):
+def SAM_metadata(filename, projectvers, projectname, detectorname):
     "Subroutine to write out SAM information"
     
     metadata = {}
@@ -38,7 +38,10 @@ def SAM_metadata(filename, projectvers, projectname):
     metadata["data_tier"] = "raw"
 
     #
-    metadata["sbn_dm.detector"] = "sbn_fd"  
+    if(detectorname=="sbn_nd"):
+        metadata["sbn_dm.detector"] = "sbn_nd"  
+    elif(detectorname=="sbn_fd"):
+        metadata["sbn_dm.detector"] = "sbn_fd"
 
     #file stream [beam trigger]
     stream = "unknown"
@@ -79,56 +82,66 @@ def SAM_metadata(filename, projectvers, projectname):
     
     metadata["checksum"] = [ checksumstr ]  
     
+    if(detectorname=="sbn_nd"):
+        try:
+            print("SBND database is not up yet and therefore, currently we are defining projectname, projectversion, configuration, project stage variables manually. Once the SBND database is up and running, then these variables will be retrieved from the SBND database directly as done for ICARUS.")
+            metadata["sbnd_project.version"]="v0_07_01"
+            metadata["sbnd_project.name"]="sbnd_daq_v0_07_01"
+            metadata["configuration.name"] ="standard"
+            metadata["sbnd_project.stage"] = "daq"
+            metadata["sbn_dm.beam_type"] = "none"
+        except:
+            print("Failed to connect to database.")
+
     #ICARUS specific fields for bookkeping 
-
-
-    try:
-        result=offline_run_history.RunHistoryiReader().read(run_num)
-        dictionary={**result[1]}
-
-        if len(dictionary)==0:
-            print("...pending run records failed. trying run records")
-            result = offline_run_history.RunHistoryiReader(ucondb_uri='https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d').read(run_num)
+    elif(detectorname=="sbn_fd"):
+        try:
+            result=offline_run_history.RunHistoryiReader().read(run_num)
             dictionary={**result[1]}
 
-        version = dictionary.get('projectversion')
+            if len(dictionary)==0:
+                print("...pending run records failed. trying run records")
+                result = offline_run_history.RunHistoryiReader(ucondb_uri='https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records/configuration/key=%d').read(run_num)
+                dictionary={**result[1]}
 
-        metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
+            version = dictionary.get('projectversion')
 
-        metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
+            metadata["icarus_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
 
-        metadata["configuration.name"] = dictionary.get('configuration')
+            metadata["icarus_project.name"] = "icarus_daq_%s" % version.rsplit()[0] #projectname
+
+            metadata["configuration.name"] = dictionary.get('configuration')
 
         s = dictionary.get('configuration').lower()
     except Exception as e:
         print('X_SAM_Metadata.py exception: '+ str(e))
         print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
 
-
-    metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
+        metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
        
-    # beam options
-    beambnb = "bnb"
-    beamnumi = "numi"
-    laser = "laser"
-    zerobias = "zerobias"
-    bnbnumi = "common"
+        # beam options
+        beambnb = "bnb"
+        beamnumi = "numi"
+        laser = "laser"
+        zerobias = "zerobias"
+        bnbnumi = "common"
 
-    if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
-       beam = "BNB"
-    elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
-       beam = "NUMI"
-    elif ( zerobias or laser) in s:
-       beam = "none"
-    elif ('offbeam' in stream):
-       beam = "none"
-    elif (bnbnumi) in s:
-       beam = "mixed"
-    else:
-       beam = "unknown"
+        if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
+            beam = "BNB"
+        elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
+            beam = "NUMI"
+        elif ( zerobias or laser) in s:
+            beam = "none"
+        elif ('offbeam' in stream):
+            beam = "none"
+        elif (bnbnumi) in s:
+            beam = "mixed"
+        else:
+            beam = "unknown"
 
-    metadata["sbn_dm.beam_type"] = beam
+        metadata["sbn_dm.beam_type"] = beam
+
 
     #for event count:
     fFile = TFile(filename,"READ")

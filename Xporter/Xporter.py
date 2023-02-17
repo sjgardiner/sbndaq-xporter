@@ -15,6 +15,7 @@ import glob
 
 #import psycopg2 # Get database functions
 
+
 import dbvariables # get conn and cur
 import X_SAM_metadata
 import X_xml_db_fill
@@ -24,61 +25,63 @@ import subprocess
 
 #print Xporter script usage and exit
 def print_usage():
-    print('Command: python Xporter.py <data directory> <dropbox directory> <"dev"/"prod"/"none"> <project version> <project name>')
+    print('Command: python Xporter.py <data directory> <dropbox directory> <detector name> <"dev"/"prod"/"none"> <project version> <project name>')
     sys.exit(1)
 
-#parse directory names, check if there
-#if so, reutrn updated/parsed name
-#if not, return empty string
 def parse_dir(dirname):
     try:
         os.chdir(dirname)
-        if (dirname[len(dirname)-1] != "/"): dirname=dirname+"/"
-        return dirname
+        if (dirname[len(dirname)-1] != "/"): 
+            dirname=dirname+"/"
+            return dirname
     except:
+        print(dirname)
         print("Directory: ", dirname, "not found")
         return ""
-    
-#parse commandline inputs
+
 def parse_cmdline_inputs(args):
-    print(args)
+    #print(args)
     if (not(len(args)==3 or len(args)==4 or len(args)==5 or len(args)==6)):
+    #if(not(len(args)==2 or len(args)==5 or len(args)==6)): #checking arguments that need to be provided while running
         print(len(args))
         print_usage()
 
+    #print("arg 0: "+sys.argv[0])
     datadir = parse_dir(sys.argv[1])
-    if(datadir==""): sys.exit(1)
+    if(datadir==""): sys.exit(1) 
+    #print(datadir)
 
     dropboxdir = parse_dir(sys.argv[2])
     if(dropboxdir==""): sys.exit(1)
+   # print(dropboxdir)
+
+    detname = sys.argv[3]
 
     runconfigdb = ""
-    if ((len(sys.argv) >= 4 and sys.argv[3]=="none") or len(sys.argv)==3):
+    if ((len(sys.argv) >= 5 and sys.argv[4]=="none") or len(sys.argv)==4):
         runconfigdb = "none"
-    elif(sys.argv[3]=="dev"):
+    elif(sys.argv[4]=="dev"):
         runconfigdb="dev"
-    elif(sys.argv[3]=="prod"):
+    elif(sys.argv[4]=="prod"):
         runconfigdb="prod"
     else:
         print_usage()
 
     projver = ""
-    if ((len(sys.argv) <= 4 )):
+    if ((len(sys.argv) <= 5 )):
         projver = "artdaq-3.07.01"
     else:
-        projver = sys.argv[4]
+        projver = sys.argv[5]
 
     projname = ""
-    if ((len(sys.argv) <= 5 )):
+    if ((len(sys.argv) <= 6 )):
         projname = "DAQDL_testdata"
     else:
-        projname = sys.argv[5]
+        projname = sys.argv[6]
 
-    return datadir,dropboxdir,runconfigdb,projver,projname
+    return datadir,dropboxdir,detname,runconfigdb,projver,projname
 
 
-#connect to runconfig database
-#return 0 if ok
 def connect_to_runconfigdb(dbname):
 
     if(dbname=="none"):
@@ -93,7 +96,6 @@ def connect_to_runconfigdb(dbname):
 
     elif(dbname=="prod"):
         print("Connecting to production RunConfigDB...")
-
         #ntry = 0
         #nodbconnection = True
         #while nodbconnection:
@@ -111,9 +113,14 @@ def connect_to_runconfigdb(dbname):
         print("Unknown RunConfigDB name: %s" % dbname)
         return -1;
 
+
+
 def obtain_lock(lockname,timeout=5,retries=2):
     lock = filelock.FileLock(lockname+"FileLock")
+    print(lockname)
+    print("locked")
     ntry=0
+    print("ntry"+str(ntry))
     while ntry<=retries:
         try: 
             lock.acquire(timeout=timeout)
@@ -137,6 +144,9 @@ def move_files(files,destdir,moveFile):
     moved_files=0
     for f in files:
         fname = f.split("/")[-1]
+        print(destdir)
+        print(fname)
+        print(dropboxdir)
         print("Will move/copy %s to %s" % (f,destdir+fname))
 
         if(len(glob.glob(dropboxdir+fname))>0):
@@ -148,7 +158,7 @@ def move_files(files,destdir,moveFile):
             os.chmod(destdir+fname,
                      stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
 #                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
-        else:
+        else:         
             shutil.move(f,destdir+fname)
             os.chmod(destdir+fname,
                      stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
@@ -157,7 +167,11 @@ def move_files(files,destdir,moveFile):
 
     return moved_files
 
-def write_metadata_files(files,pv,pn):
+
+
+
+
+def write_metadata_files(files,pv,pn,detid):
 
     n_json_written = 0
     for f in files:
@@ -167,7 +181,7 @@ def write_metadata_files(files,pv,pn):
             continue
 
         try:
-            metadata_json = X_SAM_metadata.SAM_metadata(f,pv,pn)
+            metadata_json = X_SAM_metadata.SAM_metadata(f,pv,pn,detid)
             print(metadata_json)
         except:
             print("ERROR Creating Metadata for file %s" % f)
@@ -183,17 +197,19 @@ def write_metadata_files(files,pv,pn):
         n_json_written+=1
     return n_json_written
 
+
 #
 # Get directory of Xporter.py
 #
 Xporterdir = os.path.dirname(os.path.abspath(__file__))
+print(Xporterdir)
+
 
 #parse commandline inputs
 #datadir,dropboxdir,runconfigdb = parse_cmdline_inputs(sys.argv) # new
-datadir,dropboxdir,runconfigdb,projver,projname = parse_cmdline_inputs(sys.argv)
+datadir,dropboxdir,detname,runconfigdb,projver,projname = parse_cmdline_inputs(sys.argv)
 
-#print("Data dir=%s, Dropbox dir=%s, RunConfigDB=%s" % (datadir,dropboxdir,runconfigdb))
-print("Data dir=%s, Dropbox dir=%s, RunConfigDB=%s, Project version=%s, Project name=%s" % (datadir,dropboxdir,runconfigdb,projver,projname))
+print("Data dir=%s, Dropbox dir=%s, Detector ID=%s, RunConfigDB=%s, Project version=%s, Project name=%s" % (datadir,dropboxdir,detname,runconfigdb,projver,projname))
 
 #connect to runconfigdb
 if(connect_to_runconfigdb(runconfigdb)!=0): 
@@ -201,7 +217,7 @@ if(connect_to_runconfigdb(runconfigdb)!=0):
     sys.exit(1)
 
 #  check for file lock
-lock = obtain_lock(datadir+"XporterInProgress")
+lock = obtain_lock(str(datadir)+"XporterInProgress")
 
 # CHANGE ME AT PRODUCTION!
 # for now, just do one tenth of files
@@ -215,8 +231,7 @@ files = get_finished_files(datadir,file_match_str)
 print("Found %d files in data dir" % len(files))
 for f in files:
     print("\t%s" % f.split("/")[-1])
-    
-#for each file, move/copy it to the dropbox
+
 n_moved_files = move_files(files,dropboxdir,moveFile=moveFile)
 print("Moved %d / %d files" % (n_moved_files,len(files)))
 
@@ -225,10 +240,8 @@ print("Found %d files in dropbox" % len(dropbox_files))
 for f in files:
     print("\t%s" % f.split("/")[-1])
 
-n_json_files_written = write_metadata_files(dropbox_files,projver,projname)
+n_json_files_written = write_metadata_files(dropbox_files,projver,projname,detname)
 print("Wrote %d / %d metadata files" % (n_json_files_written,len(dropbox_files)))
 
-#exit
 lock.release()
 sys.exit(0)
-
