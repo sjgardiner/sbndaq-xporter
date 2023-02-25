@@ -8,6 +8,7 @@ from runperiod import runperiod
 import SAMUtilities
 import json
 import re
+from datetime import datetime
 
 import offline_run_history
 import ROOT
@@ -102,7 +103,7 @@ def SAM_metadata(filename, projectvers, projectname):
         s = dictionary.get('configuration').lower()
     except Exception as e:
         print('X_SAM_Metadata.py exception: '+ str(e))
-        print("Failed to connect to RunHistoryReader")
+        print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
 
 
     metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
