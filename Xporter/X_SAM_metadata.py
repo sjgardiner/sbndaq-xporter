@@ -100,7 +100,8 @@ def SAM_metadata(filename, projectvers, projectname):
         metadata["configuration.name"] = dictionary.get('configuration')
 
         s = dictionary.get('configuration').lower()
-    except:
+    except Exception as e:
+        print('X_SAM_Metadata.py exception: '+ str(e))
         print("Failed to connect to RunHistoryReader")
 
 
