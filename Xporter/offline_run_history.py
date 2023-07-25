@@ -26,6 +26,7 @@ class RunHistoryiReader:
 
     def fetch_clob(self,run_number):
         try:
+            #in case of issues with RunHistory DB, a hotfix to disable SSL certificate checking is to add verify=False option to the get command below
             response = requests.get(self.ucondb_uri%(run_number))
             response.raise_for_status()
             return (0, response.text)
