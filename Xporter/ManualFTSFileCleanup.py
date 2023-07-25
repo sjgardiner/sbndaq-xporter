@@ -3,11 +3,18 @@ import json
 import glob
 import os
 
+import sys
+
 root_file_list = glob.glob("/data/fts_dropbox/*.root")
 json_file_list = glob.glob("/data/fts_dropbox/*.json")
 
 #FTS output string formatted as below
 #${sbn_dm.detector}/${file_type}/${data_tier}/${data_stream}/${icarus_project.version}/${icarus_project.name}/${icarus_project.stage}/${run_number[8/2]}
+
+MATCH_STRING = "NEARLINE"
+if (len(sys.argv) > 1):
+    MATCH_STRING = sys.argv[1]
+print(f'Remove files containing {MATCH_STRING} in curl output.')
 
 
 addr_lead_str="https://fndca3b.fnal.gov:3880/api/v1/namespace/pnfs/fnal.gov/usr/icarus/archive/sbn"
@@ -61,7 +68,7 @@ for fname in json_file_list:
         print("FILE %s no locality?"%root_fname)
         continue
 
-    if "NEARLINE" in curl_out["fileLocality"] :
+    if MATCH_STRING in curl_out["fileLocality"] :
         print("FILE %s ON TAPE!"%root_fname)
         print("Delete files %s and %s"%(fname,root_fname))
         os.system("rm -f %s"%root_fname)
