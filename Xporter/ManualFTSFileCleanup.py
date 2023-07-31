@@ -37,9 +37,9 @@ for fname in json_file_list:
                                                                  metadata["icarus_project.version"],
                                                                  metadata["icarus_project.name"],
                                                                  metadata["icarus_project.stage"],
-                                                                 run_number/100/100/100,
-                                                                 run_number/100/100,
-                                                                 run_number/100,
+                                                                 run_number//100//100//100%100,
+                                                                 run_number//100//100%100,
+                                                                 run_number//100%100,
                                                                  run_number%100)
                                                              
     #print(append_str)
@@ -69,10 +69,10 @@ for fname in json_file_list:
         continue
 
     if MATCH_STRING in curl_out["fileLocality"] :
-        print("FILE %s ON TAPE!"%root_fname)
+        #print("FILE %s ON TAPE!"%root_fname)
+        print("FILE:", root_fname, "STATUS:", curl_out["fileLocality"], "MATCHES THE REQUIRED PATTERN:", MATCH_STRING, "!")
         print("Delete files %s and %s"%(fname,root_fname))
         os.system("rm -f %s"%root_fname)
         os.system("rm -f %s"%fname)
-
 
 print("Done")
