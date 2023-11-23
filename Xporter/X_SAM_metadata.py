@@ -52,7 +52,6 @@ def SAM_metadata(filename, projectvers, projectname):
     #get run number from file name
     run_num = 0
     for part in fname.split("_"):
-        print(part)
         if (part.find("run")==0): 
             run_num = int(part[3:])
             break
