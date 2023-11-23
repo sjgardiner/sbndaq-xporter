@@ -206,7 +206,7 @@ lock = obtain_lock(datadir+"XporterInProgress")
 # CHANGE ME AT PRODUCTION!
 # for now, just do one tenth of files
 # also for now, just copy to output directory...
-file_match_str = "data_*_run*_*.root"
+file_match_str = "data*_run*_*.root"
 moveFile = True
 
 #get list of finished files
@@ -220,7 +220,7 @@ for f in files:
 n_moved_files = move_files(files,dropboxdir,moveFile=moveFile)
 print("Moved %d / %d files" % (n_moved_files,len(files)))
 
-dropbox_files = get_finished_files(dropboxdir,"data_*_run*.root")
+dropbox_files = get_finished_files(dropboxdir,file_match_str)
 print("Found %d files in dropbox" % len(dropbox_files))
 for f in files:
     print("\t%s" % f.split("/")[-1])
