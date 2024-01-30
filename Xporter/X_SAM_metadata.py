@@ -112,35 +112,36 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
 
             metadata["configuration.name"] = dictionary.get('configuration')
 
-        s = dictionary.get('configuration').lower()
-    except Exception as e:
-        print('X_SAM_Metadata.py exception: '+ str(e))
-        print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
+            s = dictionary.get('configuration').lower()
 
-        metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
+        except Exception as e:
+            print('X_SAM_Metadata.py exception: '+ str(e))
+            print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
+
+            metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
        
-        # beam options
-        beambnb = "bnb"
-        beamnumi = "numi"
-        laser = "laser"
-        zerobias = "zerobias"
-        bnbnumi = "common"
+            # beam options
+            beambnb = "bnb"
+            beamnumi = "numi"
+            laser = "laser"
+            zerobias = "zerobias"
+            bnbnumi = "common"
 
-        if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
-            beam = "BNB"
-        elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
-            beam = "NUMI"
-        elif ( zerobias or laser) in s:
-            beam = "none"
-        elif ('offbeam' in stream):
-            beam = "none"
-        elif (bnbnumi) in s:
-            beam = "mixed"
-        else:
-            beam = "unknown"
+            if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
+                beam = "BNB"
+            elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
+                beam = "NUMI"
+            elif ( zerobias or laser) in s:
+                beam = "none"
+            elif ('offbeam' in stream):
+                beam = "none"
+            elif (bnbnumi) in s:
+                beam = "mixed"
+            else:
+                beam = "unknown"
 
-        metadata["sbn_dm.beam_type"] = beam
+            metadata["sbn_dm.beam_type"] = beam
 
 
     #for event count:
