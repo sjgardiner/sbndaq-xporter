@@ -38,7 +38,7 @@ fi
 
 #python3 /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none >> ${logfile} 2>&1
 #python3 -u /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none sbndaq_v0_04_03 DataXportTesting_03Feb2020 >> ${logfile} 2>&1
-python3 -u /home/nfs/sbnd/gardiner/sbndaq-xporter/Xporter/Xporter.py /home/nfs/sbnd/gardiner/test_area/data /home/nfs/sbnd/gardiner/test_area/dropbox sbn_nd 2>&1 | tee -a ${logfile}
+python3 -u /home/nfs/sbndraw/fts_stuff/sbndaq-xporter/Xporter/Xporter.py /home/nfs/sbndraw/fts_stuff/test_area/data /home/nfs/sbndraw/fts_stuff/test_area/dropbox sbn_nd 2>&1 | tee -a ${logfile}
 #python3 /home/nfs/icarus/FileTransfer/sbndaq-xporter/Xporter/Xporter.py /data/daq /data/fts_dropbox none sbndaq_v0_04_03 DataXportTesting_03Feb2020 
 
 #echo "done?"
