@@ -46,7 +46,7 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
         metadata["sbn_dm.detector"] = "sbn_fd"
 
     #file stream [beam trigger]
-    stream = "unknown"
+    stream = "commissioning"
     for part in fname.split("_"):
         if(part.find("fstrm")==0):
             stream = part[5:].lower()
@@ -92,6 +92,7 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
             metadata["configuration.name"] ="standard"
             metadata["sbnd_project.stage"] = "daq"
             metadata["sbn_dm.beam_type"] = "none"
+            metadata["sbn.experiment"] = "sbnd"
 
             # Implementation of random floats for SBND metadata
             # 8 Feb 2024, S. Gardiner
