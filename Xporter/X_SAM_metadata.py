@@ -9,6 +9,8 @@ import SAMUtilities
 import json
 import re
 from datetime import datetime
+import random
+import time
 
 import offline_run_history
 import ROOT
@@ -90,6 +92,26 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
             metadata["configuration.name"] ="standard"
             metadata["sbnd_project.stage"] = "daq"
             metadata["sbn_dm.beam_type"] = "none"
+
+            # Implementation of random floats for SBND metadata
+            # 8 Feb 2024, S. Gardiner
+            #
+            # First get a random number on [0, 1) using the current run number
+            # as a seed. This ensures that all files with the same run number
+            # have the same value in the SAM metadata.
+            random.seed( run_num )
+            sbnd_random_run = random.random()
+            metadata["sbnd.random_run"] = sbnd_random_run
+
+            # Now ensure a unique seed using the system time and the file name
+            # together
+            seconds_since_epoch = time.time()
+            file_hash = hash( fname )
+            my_unique_seed = seconds_since_epoch + file_hash
+            random.seed( my_unique_seed )
+            sbnd_random = random.random()
+            metadata["sbnd.random"] = sbnd_random
+
         except:
             print("Failed to connect to database.")
 
