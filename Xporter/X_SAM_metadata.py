@@ -62,7 +62,7 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
             break
     print("RunNum = %d" % run_num)
 
-    metadata["runs"] = [ [ run_num , "physics"] ] 
+    metadata["runs"] = [ [ run_num , "commissioning" ] ] 
 
     #checksum
     checksum = SAMUtilities.adler32_crc(filename)
@@ -85,36 +85,75 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
     metadata["checksum"] = [ checksumstr ]  
     
     if(detectorname=="sbn_nd"):
-        try:
-            print("SBND database is not up yet and therefore, currently we are defining projectname, projectversion, configuration, project stage variables manually. Once the SBND database is up and running, then these variables will be retrieved from the SBND database directly as done for ICARUS.")
-            metadata["sbnd_project.version"]="v0_07_01"
-            metadata["sbnd_project.name"]="sbnd_daq_v0_07_01"
-            metadata["configuration.name"] ="standard"
-            metadata["sbnd_project.stage"] = "daq"
-            metadata["sbn_dm.beam_type"] = "none"
-            metadata["sbn.experiment"] = "sbnd"
+        # defaults to be overwritten by run condition database
+        metadata["sbnd_project.version"]="v1_10_01"
+        metadata["sbnd_project.name"]="sbnd_daq_v1_10_01"
+        metadata["configuration.name"] ="unknown"
+        metadata["sbnd_project.stage"] = "daq"
+        metadata["sbn_dm.beam_type"] = "unknown"
+        metadata["sbn.experiment"] = "sbnd"
+        s = 'unknown'
+        # ================
+        # Read from run condition database
+        # Note: This can fail, but we'll let Xporter catch it
+        print(f'Running iReader {run_num}')
+        result=offline_run_history.RunHistoryiReader().read(run_num)
+        dictionary={**result[1]}
 
-            # Implementation of random floats for SBND metadata
-            # 8 Feb 2024, S. Gardiner
-            #
-            # First get a random number on [0, 1) using the current run number
-            # as a seed. This ensures that all files with the same run number
-            # have the same value in the SAM metadata.
-            random.seed( run_num )
-            sbnd_random_run = random.random()
-            metadata["sbnd.random_run"] = sbnd_random_run
+        if len(dictionary)==0:
+            print("...pending run records failed. trying run records")
+            result = offline_run_history.RunHistoryiReader(ucondb_uri='https://dbdata0vm.fnal.gov:9443/sbnd_on_ucon_prod/app/data/run_records_pending/configuration/key=%d').read(run_num)
+            dictionary={**result[1]}
+        print(result)
 
-            # Now ensure a unique seed using the system time and the file name
-            # together
-            seconds_since_epoch = time.time()
-            file_hash = hash( fname )
-            my_unique_seed = seconds_since_epoch + file_hash
-            random.seed( my_unique_seed )
-            sbnd_random = random.random()
-            metadata["sbnd.random"] = sbnd_random
+        version = dictionary.get('projectversion')
+        metadata["sbnd_project.version"] = version.rsplit()[0] #"raw_%s" % projectvers  
+        metadata["sbnd_project.name"] = "sbnd_daq_%s" % version.rsplit()[0] #projectname
+        metadata["configuration.name"] = dictionary.get('configuration')
+        s = dictionary.get('configuration').lower()
+        # ================
 
-        except:
-            print("Failed to connect to database.")
+        # Implementation of random floats for SBND metadata
+        # 8 Feb 2024, S. Gardiner
+        #
+        # First get a random number on [0, 1) using the current run number
+        # as a seed. This ensures that all files with the same run number
+        # have the same value in the SAM metadata.
+        random.seed( run_num )
+        sbnd_random_run = random.random()
+        metadata["sbnd.random_run"] = sbnd_random_run
+
+        # Now ensure a unique seed using the system time and the file name
+        # together
+        seconds_since_epoch = time.time()
+        file_hash = hash( fname )
+        my_unique_seed = seconds_since_epoch + file_hash
+        random.seed( my_unique_seed )
+        sbnd_random = random.random()
+        metadata["sbnd.random"] = sbnd_random
+
+        
+	    # beam options
+        beambnb = "bnb"
+        beamnumi = "numi"
+        laser = "laser"
+        zerobias = "zerobias"
+        bnbnumi = "common"
+
+        if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
+            beam = "BNB"
+        elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
+            beam = "NUMI"
+        elif ( zerobias or laser) in s:
+            beam = "none"
+        elif ('offbeam' in stream):
+            beam = "none"
+        elif (bnbnumi) in s:
+            beam = "mixed"
+        else:
+            beam = "unknown"
+
+        metadata["sbn_dm.beam_type"] = beam
 
     #ICARUS specific fields for bookkeping 
     elif(detectorname=="sbn_fd"):
@@ -141,30 +180,30 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
             print('X_SAM_Metadata.py exception: '+ str(e))
             print(datetime.now().strftime("%T"), "Failed to connect to RunHistoryReader")
 
-            metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
+        metadata["icarus_project.stage"] = "daq" #runperiod(int(run_num)) 
 
        
-            # beam options
-            beambnb = "bnb"
-            beamnumi = "numi"
-            laser = "laser"
-            zerobias = "zerobias"
-            bnbnumi = "common"
+        # beam options
+        beambnb = "bnb"
+        beamnumi = "numi"
+        laser = "laser"
+        zerobias = "zerobias"
+        bnbnumi = "common"
 
-            if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
-                beam = "BNB"
-            elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
-                beam = "NUMI"
-            elif ( zerobias or laser) in s:
-                beam = "none"
-            elif ('offbeam' in stream):
-                beam = "none"
-            elif (bnbnumi) in s:
-                beam = "mixed"
-            else:
-                beam = "unknown"
+        if ((beambnb in s and s.find(beamnumi) == -1) or stream=='bnb' or stream=='bnbmajority' or stream=='bnbminbias'):
+            beam = "BNB"
+        elif ((beamnumi in s and s.find(beambnb) == -1) or stream=='numi' or stream=='numimajority' or stream=='numiminbias'):
+            beam = "NUMI"
+        elif ( zerobias or laser) in s:
+            beam = "none"
+        elif ('offbeam' in stream):
+            beam = "none"
+        elif (bnbnumi) in s:
+            beam = "mixed"
+        else:
+            beam = "unknown"
 
-            metadata["sbn_dm.beam_type"] = beam
+        metadata["sbn_dm.beam_type"] = beam
 
 
     #for event count:

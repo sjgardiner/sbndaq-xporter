@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import requests
 import re
 run_number = 5458
@@ -10,7 +12,7 @@ parameter_spec={"metadata.fcl": {
           #'stop_time':'daqinterface_stop_time'
     }}
 
-ucondb_uri = 'https://dbdata0vm.fnal.gov:9443/icarus_on_ucon_prod/app/data/run_records_pending/configuration/key=%d'
+ucondb_uri = 'https://dbdata0vm.fnal.gov:9443/sbnd_on_ucon_prod/app/data/run_records_pending/configuration/key=%d'
 
 class RunHistoryiReader:
     def __init__(self,
@@ -74,11 +76,10 @@ class RunHistoryiReader:
         return (error_count, results)
 
 if __name__ == '__main__':
-    my_existing_data={'run_number':run_number }
+    my_existing_data={'run_number':12208 }
     result=RunHistoryiReader().read(run_number)
     if(result[0]!=0):
         print("ErrorCode=%d."%result[0])
 
     #merge and print
     print({**my_existing_data,**result[1]})
-

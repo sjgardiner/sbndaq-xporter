@@ -1,7 +1,7 @@
 #!/bin/bash
 
-for server in icarus-evb01 icarus-evb02 icarus-evb03 icarus-evb04 icarus-evb05 icarus-evb06
+for server in sbnd-evb01 sbnd-evb02 sbnd-evb03 sbnd-evb04 sbnd-evb05 sbnd-evb06 sbnd-evb07
 do
-    ssh icarusraw@$server 'cd ~icarusraw/sbndaq-xporter/FTS_config; source setup_fts.sh; stop_fts'
+    ssh sbndraw@$server 'cd ~sbndraw/fts_stuff/sbndaq-xporter/FTS_config; source setup_fts_sbnd.sh; stop_fts'
 done
 

@@ -21,6 +21,10 @@ export X509_USER_PROXY=/opt/sbndraw/sbndraw.Raw.proxy
 source ${HOME}/fts_stuff/fts_env/bin/activate
 
 export FTS_RUN_DIR=${HOME}/fts_stuff/fts_run/$(hostname)
+export FTS_LOG_DIR=/daq/log/fts_logs/$(hostname)
+mkdir -p $FTS_RUN_DIR
+mkdir -p $FTS_LOG_DIR
+
 export FTS_CONFIG_FILE=$PWD/sbnd-evb_fts_config.ini
 cp $FTS_CONFIG_FILE $FTS_RUN_DIR/
 

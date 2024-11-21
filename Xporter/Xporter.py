@@ -12,6 +12,7 @@ import os, stat
 import time
 import shutil
 import glob
+import getpass
 
 #import psycopg2 # Get database functions
 
@@ -147,7 +148,10 @@ def move_files(files,destdir,moveFile):
         print(destdir)
         print(fname)
         print(dropboxdir)
-        print("Will move/copy %s to %s" % (f,destdir+fname))
+        if moveFile:
+            print("Will move %s to %s" % (f,destdir+fname))
+        else:
+            print("Will copy %s to %s" % (f,destdir+fname))
 
         if(len(glob.glob(dropboxdir+fname))>0):
             print("File %s already in %s" % (fname,destdir))
@@ -159,10 +163,10 @@ def move_files(files,destdir,moveFile):
                      stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
 #                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
         else:         
-            shutil.move(f,destdir+fname)
-            os.chmod(destdir+fname,
-                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
-#                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
+            print(shutil.move(f,destdir+fname))
+            # os.chmod(destdir+fname,
+            #          stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH) #only user write. Rely on manual file cleanup.
+#           #           stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH) #give write permissions to group
         moved_files+=1
 
     return moved_files
@@ -183,8 +187,8 @@ def write_metadata_files(files,pv,pn,detid):
         try:
             metadata_json = X_SAM_metadata.SAM_metadata(f,pv,pn,detid)
             print(metadata_json)
-        except:
-            print("ERROR Creating Metadata for file %s" % f)
+        except Exception as e:
+            print(f"ERROR Creating Metadata for file {f} ({e})")
             continue
 
         print(metadata_fname)
@@ -202,6 +206,7 @@ def write_metadata_files(files,pv,pn,detid):
 # Get directory of Xporter.py
 #
 Xporterdir = os.path.dirname(os.path.abspath(__file__))
+print(getpass.getuser())
 print(Xporterdir)
 
 
@@ -222,7 +227,7 @@ lock = obtain_lock(str(datadir)+"XporterInProgress")
 # CHANGE ME AT PRODUCTION!
 # for now, just do one tenth of files
 # also for now, just copy to output directory...
-file_match_str = "data_evb*_run*_*.root"
+file_match_str = "data_*run*_*.root"
 moveFile = True
 
 #get list of finished files
