@@ -18,6 +18,18 @@ from ROOT import TFile,TTree
 #
 # Begin SAM metadata function
 #
+
+def find_strm_in_fname(fname):
+    #set the stream type
+    strm_template = ['strmBNBZeroBias','strmOffBeamZeroBias','strmBNBLight','strmOffBeamLight','strmCrossingMuon','strmUnknown']
+    if 'strm' not in fname:
+        raise RuntimeError(f"Could not get stream name from file in {fname}")
+    fname_list=fname.split('_')
+    strm_matching = [s for s in fname_list if "strm" in s]
+    if strm_matching[0] not in strm_template:
+        raise RuntimeError(f"Stream name {strm_matching[0]} not found in list of templates")
+    return strm_matching[0]
+
 def SAM_metadata(filename, projectvers, projectname, detectorname):
     "Subroutine to write out SAM information"
     
@@ -62,7 +74,14 @@ def SAM_metadata(filename, projectvers, projectname, detectorname):
             break
     print("RunNum = %d" % run_num)
 
-    metadata["runs"] = [ [ run_num , "commissioning" ] ] 
+    #set the stream type
+    #metadata["runs"] = [ [ run_num , "commissioning" ] ] 
+    try:
+        stream_type=find_strm_in_fname(fname)
+	metadata["runs"] = [ [ run_num , stream_type ] ]
+    except RuntimeError as e:
+        print('X_SAM_Metadata.py exception: '+ e)
+
 
     #checksum
     checksum = SAMUtilities.adler32_crc(filename)
