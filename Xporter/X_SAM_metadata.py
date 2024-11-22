@@ -22,7 +22,7 @@ from ROOT import TFile,TTree
 def find_strm_in_fname(fname):
     #set the stream type
     strm_template = ['strmBNBZeroBias','strmOffBeamZeroBias','strmBNBLight','strmOffBeamLight','strmCrossingMuon','strmUnknown']
-    if 'starm' not in fname:
+    if 'strm' not in fname:
         raise RuntimeError(f"Could not get stream name from file in {fname}")
     fname_list=fname.split('_')
     strm_matching = [s for s in fname_list if "strm" in s]
